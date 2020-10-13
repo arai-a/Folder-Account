@@ -1,6 +1,6 @@
 # Folder Account
 
-originally by Christopher Eykamp, updated by Welpy-cw
+Originally developed by Christopher Eykamp, updated by Welpy-cw
 
 A Thunderbird extension to make managing multiple return addresses easier.
 
