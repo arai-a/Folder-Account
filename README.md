@@ -1,4 +1,4 @@
-# Folder Account 2020
+# Folder Account
 
 originally by Christopher Eykamp, updated by Welpy-cw
 
