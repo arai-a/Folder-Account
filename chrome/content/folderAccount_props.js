@@ -94,6 +94,8 @@ var folderAccountProps = {
              overrideReturnAddress = "false";
          }
 
+        let menuListEntries = []
+        
         for (var i=0; i<accounts.length; i++) {
             try {  // This try/catch will take care of accounts that have no associated identities.  These we want to skip.
             
@@ -140,10 +142,8 @@ var folderAccountProps = {
 
                         if (defaultFrom == ident) { menuItem.setAttribute("selected","true") }
 */
-                        let menuItem = menuList.appendItem(acctname, ident);
-                        if (defaultFrom == ident) {
-                          menuList.selectedItem = menuItem;
-                        }
+                        menuListEntries[acctname] = ident;
+                        
 
 
                     } catch(e) { }  // Nothing to do but skip this identity...
@@ -152,14 +152,21 @@ var folderAccountProps = {
 
             } catch(e) { }  // Nothing to do but skip this account...
 
-            document.getElementById("mlFolderAccountDefaultTo").setAttribute("value", defaultTo);
-            document.getElementById("mlFolderAccountAddToCcOnReply").checked = (addToCcOnReply == "true");
-            document.getElementById("mlFolderAccountReplyToOnReplyForward").checked = (replyToOnReplyForward == "true");
-            document.getElementById("mlFolderAccountOverrideReturnAddress").checked = (overrideReturnAddress == "true");
-            document.getElementById("mlFolderAccountDefaultReplyTo").setAttribute("value", defaultReplyTo);  // (by Jakob)
-
         }
         
+        let mle = Object.entries(menuListEntries).sort((a, b) => (a > b))
+        for (const [a, i] of mle) {
+          let menuItem = menuList.appendItem(a, i);
+          if (defaultFrom == i) {
+            menuList.selectedItem = menuItem;
+          }              
+        }
+
+        document.getElementById("mlFolderAccountDefaultTo").setAttribute("value", defaultTo);
+        document.getElementById("mlFolderAccountAddToCcOnReply").checked = (addToCcOnReply == "true");
+        document.getElementById("mlFolderAccountReplyToOnReplyForward").checked = (replyToOnReplyForward == "true");
+        document.getElementById("mlFolderAccountOverrideReturnAddress").checked = (overrideReturnAddress == "true");
+        document.getElementById("mlFolderAccountDefaultReplyTo").setAttribute("value", defaultReplyTo);  // (by Jakob)
 
 /* => TB78
 
