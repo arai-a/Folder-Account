@@ -60,7 +60,7 @@ var folderAccountCompose = {
     // Do NOT overwrite To: address if the message is new and already has one: 
     // The user probably selected an addr from the address book and wants to use that one.
 
-    if (details.type == "new" && !details.to.length > 0) {
+    if (details.type == "new" && details.to.length == 0) {
       // Only set the To: address on a new message.  For forwards, or Reply All, 
       // more likely than not the user will want to use a non-default To address.
       try {
@@ -75,7 +75,7 @@ var folderAccountCompose = {
     // (by Jakob)
 
     if ((details.type == "new" || folderAccountCompose.getPrefs(folderURI, "replyToOnReplyForward.")) 
-        && !details.replyTo.length > 0) {
+        && details.replyTo.length == 0) {
       try {
         var replyTo = folderAccountCompose.getPrefs(folderURI, "replyTo.");
         if (replyTo) {
