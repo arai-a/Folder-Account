@@ -129,7 +129,7 @@ var folderAccountProps = {
         menuList.selectedItem = menuList.appendItem("Use Default", "Use Default");      
 
         let entriesArray = Object.entries(menuListEntries);
-        if (sortAccounts)
+        if (sortAccounts == "true")
           entriesArray = entriesArray.sort((a, b) => (a > b));
         for (const [a, i] of entriesArray) {
           let menuItem = menuList.appendItem(a, i);
