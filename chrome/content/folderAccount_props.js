@@ -448,7 +448,7 @@ function onLoad(activatedWhileWindowOpen) {
       <vbox>
         <checkbox id="mlFolderAccountReplyToOnReplyForward" label="Use Reply-To address also on Reply and Forward" accesskey="U"/>
         <spacer height="2"/>
-        <checkbox id="mlFolderAccountAddToCcOnReply" label="Add to CC list on Reply (won't work on Reply-All)" accesskey="C"/>
+        <checkbox id="mlFolderAccountAddToCcOnReply" label="Add to CC list on Reply" accesskey="C"/>
         <spacer height="2"/>
         <checkbox id="mlFolderAccountOverrideReturnAddress" label="Ignore From account on Reply or Reply-All (i.e. let Thunderbird choose)" accesskey="I"/>
       </vbox>

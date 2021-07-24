@@ -39,6 +39,7 @@
     "scripts": ["background.js"]
   },
   "permissions": [
+    "accountsRead",
     "compose",
     "notifications",  
     "tabs"

@@ -18,3 +18,14 @@ messenger.WindowListener.registerWindow(
 );
 
 messenger.WindowListener.startListening();
+
+messenger.NotifyTools.onNotifyBackground.addListener(async (info) => {
+  switch (info.command) {
+    case "getComposeDetails":
+      return await messenger.compose.getComposeDetails(info.tabId);
+      break;
+    case "setComposeDetails":
+      return await messenger.compose.setComposeDetails(info.tabId, info.details);
+      break;
+  }
+});
