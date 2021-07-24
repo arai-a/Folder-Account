@@ -128,7 +128,7 @@ var folderAccountProps = {
         var menuList = document.getElementById("mlFolderAccount");
         menuList.selectedItem = menuList.appendItem("Use Default", "Use Default");      
 
-        entriesArray = Object.entries(menuListEntries);
+        let entriesArray = Object.entries(menuListEntries);
         if (sortAccounts)
           entriesArray = entriesArray.sort((a, b) => (a > b));
         for (const [a, i] of entriesArray) {
@@ -225,7 +225,7 @@ var folderAccountProps = {
 
             // Save state of our checkbox
             prefs.setCharPref("addToCcOnReply." + folderURI, mlAddToCcOnReply.getAttribute("checked"));
-	          prefs.setCharPref("replyToOnReplyForward." + folderURI, mlReplyToOnReplyForward.getAttribute("checked"));
+            prefs.setCharPref("replyToOnReplyForward." + folderURI, mlReplyToOnReplyForward.getAttribute("checked"));
             prefs.setCharPref("overrideReturnAddress." + folderURI, mlOverrideReturnAddress.getAttribute("checked"));
             prefs.setCharPref("replyTo." + folderURI,mlReplyTo.value);
 
