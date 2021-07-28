@@ -1,6 +1,6 @@
 var { MailServices } = ChromeUtils.import("resource:///modules/MailServices.jsm");
 
-Services.scriptloader.loadSubScript("chrome://folderaccount/content/notifyTools.js", window);
+Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/notifyTools/notifyTools.js", window);
 
 var folderAccountCompose = {
 
