@@ -237,31 +237,33 @@ var folderAccountProps = {
 
 function onLoad(activatedWhileWindowOpen) {
   WL.injectCSS("chrome://messenger/skin/menulist.css");
+  WL.injectCSS("chrome://messenger/skin/input-fields.css");
   WL.injectElements(`
     <tab id="FolderAccountTab" label="Folder Account" insertafter="GeneralTab"/>
     <vbox id="FolderAccountPanel" insertafter="GeneralPanel">
-      <vbox id="nameBox" align="right" class="input-container">
-        <label id="identityLabel" value="From Account:" accesskey="F" control="mlFolderAccount"/>
-        <menulist is="menulist-editable" id="mlFolderAccount" type="description" disableautoselect="false">
-          <menupopup id="mlFolderAccountPopup"/>
-          <spacer height="2"/>
-        </menulist>
-        <label id="defaultToLabel" value="Default To:" control="mlFolderAccountDefaultTo" accesskey="T"/>
-        <html:input id="mlFolderAccountDefaultTo" type="text" class="input-inline"/>
-        <label id="defaultReplyToLabel" value="Additional Reply-To:" control="mlFolderAccountDefaultReplyTo" accesskey="R"/>
-        <html:input id="mlFolderAccountDefaultReplyTo" type="text" class="input-inline"/>
-      </vbox>
-      <spacer height="6"/>
-      <vbox>
-        <checkbox id="mlFolderAccountReplyToOnReplyForward" label="Use Reply-To address also on Reply and Forward" accesskey="U"/>
-        <spacer height="2"/>
-        <checkbox id="mlFolderAccountAddToCcOnReply" label="Add to CC list on Reply" accesskey="C"/>
-        <spacer height="2"/>
-        <checkbox id="mlFolderAccountOverrideReturnAddress" label="Ignore From account on Reply or Reply-All (i.e. let Thunderbird choose)" accesskey="I"/>
-      </vbox>
-      <spacer height="6"/>
-      <vbox>
-        <checkbox id="mlFolderAccountSortAccounts" label="Sort From Accounts (global setting)" accesskey="S"/>
+      <vbox id="nameBox" class="input-container">
+        <label id="faAccountLabel" value="From Account:" accesskey="F" control="mlFolderAccount" align="start" />
+        <vbox>
+          <menulist is="menulist-editable" id="mlFolderAccount" type="description" disableautoselect="false">
+            <menupopup id="mlFolderAccountPopup"/>
+          </menulist>
+          <hbox>
+            <checkbox id="mlFolderAccountOverrideReturnAddress" label="Ignore on Reply (i.e. let Thunderbird choose)" accesskey="I"/>
+            <spacer flex="1"/>
+            <checkbox id="mlFolderAccountSortAccounts" label="Sort (next time)" accesskey="S"/>
+          </hbox>
+          <spacer height="6"/>
+        </vbox>
+        <label id="faDefaultToLabel" value="Default To:" control="mlFolderAccountDefaultTo" accesskey="T"/>
+        <hbox class="input-container">
+          <html:input id="mlFolderAccountDefaultTo" type="text" class="input-inline"/>
+          <checkbox id="mlFolderAccountAddToCcOnReply" label="Add to CC list on Reply" accesskey="C"/>
+        </hbox>
+        <label id="faDefaultReplyToLabel" value="Additional Reply-To:" control="mlFolderAccountDefaultReplyTo" accesskey="R"/>
+        <hbox class="input-container">
+          <html:input id="mlFolderAccountDefaultReplyTo" type="text" class="input-inline"/>
+          <checkbox id="mlFolderAccountReplyToOnReplyForward" label="Use also on Reply and Forward" accesskey="U"/>
+        </hbox>
       </vbox>
     </vbox>
   `);
