@@ -100,22 +100,20 @@ var folderAccountProps = {
                         // OK, passed the test, now get the account name
                         var server = prefs.getCharPref("account." + accounts[i] + ".server");
 
-
                         var acctname = "";
 
-                        // If there are more than one account with this identity, we need to clarify which one is which...
-                        if (idents.length > 1) {
-
-                            // Name [fullName] worked, but created confusion in some setups...  let's try Name [email address]
-                            acctname = prefs.getCharPref("server." + server + ".name") + " [" + prefs.getCharPref("identity." + ident + ".useremail") + "]";
-                            
-                        } else { 
-                            acctname = prefs.getCharPref("server." + server + ".name");
-                        }
-
+                        let hasFullName = true;
+                        try {
+                          acctname += prefs.getCharPref("identity." + ident + ".fullName") + " <";
+                        } catch (e) {
+                          hasFullName = false;
+                        };
+                        acctname += email + (hasFullName ? "> " : " ");
+                        try {
+                          acctname += "(" + prefs.getCharPref("identity." + ident + ".label") + ") ";
+                        } catch (e) {};
+                        acctname += "[" + prefs.getCharPref("server." + server + ".name") + "]";                          
                         menuListEntries[acctname] = ident;
-                        
-
 
                     } catch(e) { }  // Nothing to do but skip this identity...
                 }

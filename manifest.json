@@ -13,7 +13,7 @@
   "icons": {
     "64": "icon.png"
   },
-  "version": "11.0",
+  "version": "11.1",
   "experiment_apis": {
     "NotifyTools": {
       "schema": "api/NotifyTools/schema.json",
