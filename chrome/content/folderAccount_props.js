@@ -1,14 +1,10 @@
+Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/notifyTools/notifyTools.js", window);
 
 var folderAccountProps = {
 
     addTab: function() {
 
-        // Get the "mail" prefrence branch
         var allPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-        var prefs = allPrefs.getBranch("mail.");   
-        var accounts = new Array();
-        accounts = prefs.getCharPref("accountmanager.accounts").split(',');     // accountmanager.accounts is a comma delimited list of accounts
-
 
         // Retrieve any stored user settings...
 
@@ -23,7 +19,7 @@ var folderAccountProps = {
         var replyToOnReplyForward;
         var defaultReplyTo;
         
-        let sortAccounts;
+        let sortIdentities;
         
         // Selected From: account
         try {
@@ -69,72 +65,44 @@ var folderAccountProps = {
          }
 
          try {
-             sortAccounts = userSettings.getCharPref("sortAccounts");
+             sortIdentities = userSettings.getCharPref("sortAccounts");
          } catch (e) {
-             sortAccounts = "false";
+             sortIdentities = "false";
          }
-
-        let menuListEntries = []
-        
-        for (var i=0; i<accounts.length; i++) {
-            try {  // This try/catch will take care of accounts that have no associated identities.  These we want to skip.
-            
-            
-                // We won't use email, but this will error out if the user doesn't have one set for this type
-                // of account (e.g. News & Blogs, Local Folders), which gives us an easy way to skip entries that have no email
-                
-                // Single personalities assocated with an account look like this:
-                // user_pref("mail.account.account2.identities", "id1");
-
-                // Multiple personalities associated with an account look like this:
-                // user_pref("mail.account.account2.identities", "id1,id6");
-
-                var idents = prefs.getCharPref("account." + accounts[i] + ".identities").split(',');
-            
-                for (var j=0; j<idents.length; j++) {
-            
-                    try {    
-                        var ident = idents[j];
-                        var email = prefs.getCharPref("identity." + ident + ".useremail");
-
-                        // OK, passed the test, now get the account name
-                        var server = prefs.getCharPref("account." + accounts[i] + ".server");
-
-                        var acctname = "";
-
-                        let hasFullName = true;
-                        try {
-                          acctname += prefs.getCharPref("identity." + ident + ".fullName") + " <";
-                        } catch (e) {
-                          hasFullName = false;
-                        };
-                        acctname += email + (hasFullName ? "> " : " ");
-                        try {
-                          acctname += "(" + prefs.getCharPref("identity." + ident + ".label") + ") ";
-                        } catch (e) {};
-                        acctname += "[" + prefs.getCharPref("server." + server + ".name") + "]";                          
-                        menuListEntries[ident] = acctname;
-
-                    } catch(e) { }  // Nothing to do but skip this identity...
-                }
-
-
-            } catch(e) { }  // Nothing to do but skip this account...
-
-        }
 
         var menuList = document.getElementById("mlFolderAccount");
         menuList.selectedItem = menuList.appendItem("Use Default", "Use Default");      
-
-        let entriesArray = Object.entries(menuListEntries);
-        if (sortAccounts == "true")
-          entriesArray = entriesArray.sort(([,a], [,b]) => (a > b));
-        for (const [i, a] of entriesArray) {
-          let menuItem = menuList.appendItem(a, i);
-          if (defaultFrom == i) {
-            menuList.selectedItem = menuItem;
-          }              
-        }
+        window.notifyTools.notifyBackground({ command: "listAccounts" }).then((accounts) => {
+          for (const account of accounts) {
+            if (account.identities.length == 0)
+              continue;
+            let menuListEntries = []
+            for (const id of account.identities) {
+              try {    
+                let entry = "";
+                if (id.name.length > 0)
+                  entry += id.name + " <" + id.email + ">";
+                else
+                  entry += id.email;
+                if (id.label.length > 0)
+                  entry += " (" + id.label + ")";
+                entry += "\u2003[" + account.name + "]";
+                menuListEntries[id.id] = entry;
+              } catch(e) { }  // Nothing to do but skip this identity...
+            }
+            let entriesArray = Object.entries(menuListEntries);
+            if (sortIdentities == "true")
+              entriesArray = entriesArray.sort(([,a], [,b]) => (a > b));
+            let separator = document.createXULElement("menuseparator");
+            menuList.menupopup.appendChild(separator);
+            for (const [i, a] of entriesArray) {
+              let menuItem = menuList.appendItem(a, i);
+              if (defaultFrom == i) {
+                menuList.selectedItem = menuItem;
+              }              
+            }
+          }
+        });
 
         document.getElementById("mlFolderAccountDefaultTo").setAttribute("value", defaultTo);
         document.getElementById("mlFolderAccountAddToCcOnReply").checked = (addToCcOnReply == "true");
@@ -142,7 +110,7 @@ var folderAccountProps = {
         document.getElementById("mlFolderAccountOverrideReturnAddress").checked = (overrideReturnAddress == "true");
         document.getElementById("mlFolderAccountDefaultReplyTo").setAttribute("value", defaultReplyTo);  // (by Jakob)
 
-        document.getElementById("mlFolderAccountSortAccounts").checked = (sortAccounts == "true");
+        document.getElementById("mlFolderAccountSortIdentities").checked = (sortIdentities == "true");
 
         document.addEventListener("dialogaccept", function(event) {
         	folderAccountProps.saveAccountPrefs();
@@ -185,7 +153,7 @@ var folderAccountProps = {
             var mlOverrideReturnAddress   = document.getElementById("mlFolderAccountOverrideReturnAddress");
             var mlReplyTo                 = document.getElementById("mlFolderAccountDefaultReplyTo");  // (by Jakob)
             
-            let mlSortAccounts            = document.getElementById("mlFolderAccountSortAccounts");
+            let mlSortIdentities          = document.getElementById("mlFolderAccountSortIdentities");
 
             var folderURI =  window.arguments[0].folder.URI;
 
@@ -227,7 +195,7 @@ var folderAccountProps = {
             prefs.setCharPref("overrideReturnAddress." + folderURI, mlOverrideReturnAddress.getAttribute("checked"));
             prefs.setCharPref("replyTo." + folderURI,mlReplyTo.value);
 
-            prefs.setCharPref("sortAccounts", mlSortAccounts.getAttribute("checked"));
+            prefs.setCharPref("sortAccounts", mlSortIdentities.getAttribute("checked"));
             
         } catch (e) { } 
     }
@@ -248,7 +216,7 @@ function onLoad(activatedWhileWindowOpen) {
           <hbox>
             <checkbox id="mlFolderAccountOverrideReturnAddress" label="Ignore on Reply (i.e. let Thunderbird choose)" accesskey="I"/>
             <spacer flex="1"/>
-            <checkbox id="mlFolderAccountSortAccounts" label="Sort (next time)" accesskey="S"/>
+            <checkbox id="mlFolderAccountSortIdentities" label="Sort (next time)" accesskey="S"/>
           </hbox>
           <spacer height="6"/>
         </vbox>

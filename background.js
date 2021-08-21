@@ -27,5 +27,8 @@ messenger.NotifyTools.onNotifyBackground.addListener(async (info) => {
     case "setComposeDetails":
       return await messenger.compose.setComposeDetails(info.tabId, info.details);
       break;
+    case "listAccounts":
+      return await messenger.accounts.list(false);
+      break;
   }
 });
