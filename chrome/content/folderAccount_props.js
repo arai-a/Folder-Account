@@ -113,7 +113,7 @@ var folderAccountProps = {
                           acctname += "(" + prefs.getCharPref("identity." + ident + ".label") + ") ";
                         } catch (e) {};
                         acctname += "[" + prefs.getCharPref("server." + server + ".name") + "]";                          
-                        menuListEntries[acctname] = ident;
+                        menuListEntries[ident] = acctname;
 
                     } catch(e) { }  // Nothing to do but skip this identity...
                 }
@@ -128,8 +128,8 @@ var folderAccountProps = {
 
         let entriesArray = Object.entries(menuListEntries);
         if (sortAccounts == "true")
-          entriesArray = entriesArray.sort((a, b) => (a > b));
-        for (const [a, i] of entriesArray) {
+          entriesArray = entriesArray.sort(([,a], [,b]) => (a > b));
+        for (const [i, a] of entriesArray) {
           let menuItem = menuList.appendItem(a, i);
           if (defaultFrom == i) {
             menuList.selectedItem = menuItem;
