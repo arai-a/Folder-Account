@@ -1,5 +1,3 @@
-var { MailServices } = ChromeUtils.import("resource:///modules/MailServices.jsm");
-
 Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/notifyTools/notifyTools.js", window);
 
 var folderAccountCompose = {
@@ -101,7 +99,6 @@ var folderAccountCompose = {
 
     var FromID = folderAccountCompose.getPrefs(folderURI, "");
 
-    var To = folderAccountCompose.getPrefs(folderURI, "to.");
     var overrideReturnAddress = folderAccountCompose.getPrefs(folderURI, "overrideReturnAddress.");
 
     var override = true;
@@ -113,7 +110,7 @@ var folderAccountCompose = {
     // unless they have specified one
 
     if (FromID && override) {
-      newDetails.identityId = FromID; // MailServices.accounts.getIdentity(FromID);
+      newDetails.identityId = FromID;
     }
 
     return newDetails;
