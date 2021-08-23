@@ -48,60 +48,6 @@ var folderAccount = {
             }
         }
 
-        
-        // And again for the "To" prefs  (TODO: Should probably condense code with above...  only differences are the .to bits...)
-        branch = folderAccount.prefs.getBranch("extensions.folderaccount.to.");
-        children = branch.getChildList("",{});
-
-        for(var i=0; i < children.length; i++ ) {     
-            var child = children[i];
-            var child2 = child + "/";
-
-            var pos = child2.indexOf(oldURI + "/");
-
-            if (pos >= 0 ) {
-
-                // Store the setting value
-                var val = folderAccount.prefs.getCharPref("extensions.folderaccount.to" + child);
-
-                // Clear the old setting
-                folderAccount.prefs.clearUserPref("extensions.folderaccount.to" + child);
-
-
-                // Create and set the new setting
-                var child2 = child2.substring(0,pos) + newURI + child2.substring(pos + oldURI.length,child.length);
-
-                folderAccount.prefs.setCharPref("extensions.folderaccount.to" + child2, val);                
-
-            }
-        }
-
-        // And again for the "Cc" prefs  (TODO: Should probably condense code with above...  only differences are the .to bits...)
-        branch = folderAccount.prefs.getBranch("extensions.folderaccount.to.");
-        children = branch.getChildList("",{});
-
-        for(var i=0; i < children.length; i++ ) {     
-            var child = children[i];
-            var child2 = child + "/";
-
-            var pos = child2.indexOf(oldURI + "/");
-
-            if (pos >= 0 ) {
-
-                // Store the setting value
-                var val = folderAccount.prefs.getCharPref("extensions.folderaccount.cc" + child);
-
-                // Clear the old setting
-                folderAccount.prefs.clearUserPref("extensions.folderaccount.cc" + child);
-
-
-                // Create and set the new setting
-                var child2 = child2.substring(0,pos) + newURI + child2.substring(pos + oldURI.length,child.length);
-
-                folderAccount.prefs.setCharPref("extensions.folderaccount.cc" + child2, val);                
-
-            }
-        }
     },  
   
 
