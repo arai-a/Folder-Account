@@ -36,6 +36,12 @@ var folderAccountProps = {
             defaultTo = "";
         }
  
+        try {
+            defaultReplyTo = userSettings.getCharPref("replyTo." + folderURI);
+        } catch (e) {
+            defaultReplyTo = "";
+        }
+
          // Include address in CC on reply?
          try {
              addToCcOnReply = userSettings.getCharPref("addToCcOnReply." + folderURI);
@@ -50,13 +56,6 @@ var folderAccountProps = {
              replyToOnReplyForward = "false";
          }
          
-         try {
-             defaultReplyTo = userSettings.getCharPref("replyTo." + folderURI);
-         } catch (e) {
-             defaultReplyTo = "";
-         }
-
-
          // Override default return address?
          try {
              overrideReturnAddress = userSettings.getCharPref("overrideReturnAddress." + folderURI);
@@ -105,10 +104,11 @@ var folderAccountProps = {
         });
 
         document.getElementById("mlFolderAccountDefaultTo").setAttribute("value", defaultTo);
+        document.getElementById("mlFolderAccountDefaultReplyTo").setAttribute("value", defaultReplyTo);
+
         document.getElementById("mlFolderAccountAddToCcOnReply").checked = (addToCcOnReply == "true");
         document.getElementById("mlFolderAccountReplyToOnReplyForward").checked = (replyToOnReplyForward == "true");
         document.getElementById("mlFolderAccountOverrideReturnAddress").checked = (overrideReturnAddress == "true");
-        document.getElementById("mlFolderAccountDefaultReplyTo").setAttribute("value", defaultReplyTo);  // (by Jakob)
 
         document.getElementById("mlFolderAccountSortIdentities").checked = (sortIdentities == "true");
 
@@ -118,28 +118,6 @@ var folderAccountProps = {
 
     },
 
-
-/////
-
-    // Removes leading whitespaces
-    LTrim: function ( value ) {
-        var re = /\s*((\S+\s*)*)/;
-        return value.replace(re, "$1");
-    },
-
-    // Removes ending whitespaces
-    RTrim: function ( value ) {
-        var re = /((\s*\S+)*)\s*/;
-        return value.replace(re, "$1");
-    },
-
-    // Removes leading and ending whitespaces
-    trim: function ( value ) {
-        return folderAccountProps.LTrim(folderAccountProps.RTrim(value));
-    },
-
-
-
     saveAccountPrefs: function() {
 
         // Get value of our box:
@@ -148,10 +126,11 @@ var folderAccountProps = {
 
             var mlFrom                    = document.getElementById("mlFolderAccount");
             var mlTo                      = document.getElementById("mlFolderAccountDefaultTo");
+            var mlReplyTo                 = document.getElementById("mlFolderAccountDefaultReplyTo");
+
             var mlAddToCcOnReply          = document.getElementById("mlFolderAccountAddToCcOnReply");
             var mlReplyToOnReplyForward	  = document.getElementById("mlFolderAccountReplyToOnReplyForward");
             var mlOverrideReturnAddress   = document.getElementById("mlFolderAccountOverrideReturnAddress");
-            var mlReplyTo                 = document.getElementById("mlFolderAccountDefaultReplyTo");  // (by Jakob)
             
             let mlSortIdentities          = document.getElementById("mlFolderAccountSortIdentities");
 
@@ -160,42 +139,31 @@ var folderAccountProps = {
             var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
             prefs = prefs.getBranch("extensions.folderaccount.");   
 
-            if(mlFrom.value == "Use Default") {
-                // If the value is "Use Default", then we'll just delete the relevant saved preference
+            function setOrClearPref(pref, value, valueToClear = "") {
+              if(value == valueToClear) {
                 // Need to use try/catch because if pref doesn't exist, clearUserPref will bomb
                 try {
-                    prefs.clearUserPref(folderURI);
-                    } catch (e) { }
-
-            } else {
-
-                // Otherwise, save the preference
-                prefs.setCharPref(folderURI,mlFrom.value);
-            }
-            
-            mlTo.value = folderAccountProps.trim(mlTo.value);   // Strip leading and trailing spaces
-            mlReplyTo.value = folderAccountProps.trim(mlReplyTo.value); 
-
-            if(mlTo.value == "") {
-                // If the value is blank, then we'll just delete the relevant saved preference
-                // Need to use try/catch because if pref doesn't exist, clearUserPref will bomb
-                try {
-                    prefs.clearUserPref("to." + folderURI);
+                  prefs.clearUserPref(pref);
                 } catch (e) { }
-
-            } else {
+              } else {
                 // Otherwise, save the preference
-                prefs.setCharPref("to." + folderURI,mlTo.value);
+                prefs.setCharPref(pref, value);
+              }
             }
+                      
+            // If the value is "Use Default", then we'll just delete the relevant saved preference
+            setOrClearPref(folderURI, mlFrom.value, "Use Default");
 
+            // If the value is blank, then we'll just delete the relevant saved preference
 
-            // Save state of our checkbox
-            prefs.setCharPref("addToCcOnReply." + folderURI, mlAddToCcOnReply.getAttribute("checked"));
-            prefs.setCharPref("replyToOnReplyForward." + folderURI, mlReplyToOnReplyForward.getAttribute("checked"));
-            prefs.setCharPref("overrideReturnAddress." + folderURI, mlOverrideReturnAddress.getAttribute("checked"));
-            prefs.setCharPref("replyTo." + folderURI,mlReplyTo.value);
+            setOrClearPref("to." + folderURI, mlTo.value.trim());
+            setOrClearPref("replyTo." + folderURI, mlReplyTo.value.trim());
 
-            prefs.setCharPref("sortAccounts", mlSortIdentities.getAttribute("checked"));
+            setOrClearPref("addToCcOnReply." + folderURI, mlAddToCcOnReply.getAttribute("checked"));
+            setOrClearPref("replyToOnReplyForward." + folderURI, mlReplyToOnReplyForward.getAttribute("checked"));
+            setOrClearPref("overrideReturnAddress." + folderURI, mlOverrideReturnAddress.getAttribute("checked"));
+
+            setOrClearPref("sortAccounts", mlSortIdentities.getAttribute("checked"));
             
         } catch (e) { } 
     }
