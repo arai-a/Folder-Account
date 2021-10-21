@@ -116,16 +116,36 @@ var folderAccountCompose = {
     return newDetails;
   },
 
+  // code snippets from Thunderbird's MsgComposeCommands.js
+  adjustFocus: function () {
+    // Focus on the recipient input field if no pills are present.
+    let element = document.getElementById("toAddrContainer");
+    if (element.querySelectorAll("mail-address-pill").length == 0) {
+      element.querySelector(".address-row-input").focus();
+      return;
+    }
+    // Focus subject if empty.
+    element = document.getElementById("msgSubject");
+    if (element.value == "") {
+      element.focus();
+      return;
+    }
+    // Focus message body.
+    document.commandDispatcher.advanceFocusIntoSubtree(
+      document.getElementById("appcontent")
+    );
+  },
+    
   folderAccountStateListener: {
     NotifyComposeBodyReady: function () {},
 
-    NotifyComposeFieldsReady: function () {
+    NotifyComposeFieldsReady: async function () {
       // let wndwId = WL.extension.windowManager.wrapWindow(window).id; // , windowId: wndwId}
       let tabId = WL.extension.tabManager.getWrapper(window).id;
-      window.notifyTools.notifyBackground({ command: "getComposeDetails", tabId: tabId }).then((details) => {
-        let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
-        window.notifyTools.notifyBackground({ command: "setComposeDetails", tabId: tabId, details: changedDetails });
-      });
+      let details = await window.notifyTools.notifyBackground({ command: "getComposeDetails", tabId: tabId });
+      let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
+      await window.notifyTools.notifyBackground({ command: "setComposeDetails", tabId: tabId, details: changedDetails });
+      // folderAccountCompose.adjustFocus();
     },
 
     ComposeProcessDone: function (aResult) {},
