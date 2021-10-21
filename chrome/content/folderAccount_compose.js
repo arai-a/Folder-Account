@@ -145,7 +145,7 @@ var folderAccountCompose = {
       let details = await window.notifyTools.notifyBackground({ command: "getComposeDetails", tabId: tabId });
       let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
       await window.notifyTools.notifyBackground({ command: "setComposeDetails", tabId: tabId, details: changedDetails });
-      // folderAccountCompose.adjustFocus();
+      folderAccountCompose.adjustFocus();
     },
 
     ComposeProcessDone: function (aResult) {},
