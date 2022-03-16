@@ -49,8 +49,8 @@ var folderAccountCompose = {
           }
         } catch (e) {} // If there's an error here, it's not what we want, so we need do nothing
       }
-    } else if (details.type == "reply" || details.type == "forward") {
-      // use the folder containing the related message
+    } else if (details.type != "draft") {
+      // in case of reply, forward and redirect use the folder containing the related message
       try {
         folderURI = window.gMessenger.msgHdrFromURI(window.gMsgCompose.originalMsgURI).folder.URI;
       } catch (e) {}
