@@ -35,23 +35,30 @@ var folderAccountCompose = {
 
   changeComposeDetails: function (details) {
 
-    var folderURI = "";
-    var mediator = Services.wm;
+    let folderURI = "";
 
-    // Now cycle through all windows until we find one that understands GetSelectedFolderURI()
-    // Known bug: if there is more than one "main" window open, we can't tell which one opened the compose window.
-
-    var enumerator = mediator.getEnumerator(null);
-    while (enumerator.hasMoreElements()) {
-      var domWindow = enumerator.getNext();
+    if (details.type == "new") {
+      // cycle through all windows until we find one that displays a folder
+      let enumerator = Services.wm.getEnumerator(null);
+      while (enumerator.hasMoreElements()) {
+        let domWindow = enumerator.getNext();
+        try {
+          if (domWindow.gFolderDisplay && domWindow.gFolderDisplay.displayedFolder) {
+            folderURI = domWindow.gFolderDisplay.displayedFolder.URI;
+            break;
+          }
+        } catch (e) {} // If there's an error here, it's not what we want, so we need do nothing
+      }
+    } else if (details.type == "reply" || details.type == "forward") {
+      // use the folder containing the related message
       try {
-        if (domWindow.gFolderDisplay && domWindow.gFolderDisplay.displayedFolder) {
-          folderURI = domWindow.gFolderDisplay.displayedFolder.URI;
-          break;
-        }
-      } catch (e) {} // If there's an error here, it's not what we want, so we need do nothing
-    }
-
+        folderURI = window.gMessenger.msgHdrFromURI(window.gMsgCompose.originalMsgURI).folder.URI;
+      } catch (e) {}
+    }  
+    
+    if (folderURI == "")
+      return {};
+    
     let newDetails = {};
     
     // To:
