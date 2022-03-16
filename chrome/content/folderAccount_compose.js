@@ -123,6 +123,9 @@ var folderAccountCompose = {
     return newDetails;
   },
 
+// workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1732558 not needed anymore:
+
+/* 
   // code snippets from Thunderbird's MsgComposeCommands.js
   adjustFocus: function () {
     // Focus on the recipient input field if no pills are present.
@@ -142,6 +145,7 @@ var folderAccountCompose = {
       document.getElementById("appcontent")
     );
   },
+*/
     
   folderAccountStateListener: {
     NotifyComposeBodyReady: function () {},
@@ -152,7 +156,7 @@ var folderAccountCompose = {
       let details = await window.notifyTools.notifyBackground({ command: "getComposeDetails", tabId: tabId });
       let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
       await window.notifyTools.notifyBackground({ command: "setComposeDetails", tabId: tabId, details: changedDetails });
-      folderAccountCompose.adjustFocus();
+      // folderAccountCompose.adjustFocus();
     },
 
     ComposeProcessDone: function (aResult) {},
