@@ -35,22 +35,28 @@ var folderAccountCompose = {
 
   changeComposeDetails: function (details) {
 
-    let folderURI = "";
+    if (details.type == "draft")
+      return {};
 
-    if (details.type == "new") {
-      // cycle through all windows until we find one that displays a folder
-      let enumerator = Services.wm.getEnumerator(null);
-      while (enumerator.hasMoreElements()) {
-        let domWindow = enumerator.getNext();
-        try {
-          if (domWindow.gFolderDisplay && domWindow.gFolderDisplay.displayedFolder) {
-            folderURI = domWindow.gFolderDisplay.displayedFolder.URI;
-            break;
-          }
-        } catch (e) {} // If there's an error here, it's not what we want, so we need do nothing
-      }
-    } else if (details.type != "draft") {
-      // in case of reply, forward and redirect use the folder containing the related message
+    let folderURI = "";
+    let folderIsVirtual = false;
+    
+    // cycle through all windows until we find one that displays a folder
+    let enumerator = Services.wm.getEnumerator(null);
+    while (enumerator.hasMoreElements()) {
+      let domWindow = enumerator.getNext();
+      try {
+        if (domWindow.gFolderDisplay && domWindow.gFolderDisplay.displayedFolder) {
+          folderURI = domWindow.gFolderDisplay.displayedFolder.URI;
+          folderIsVirtual = domWindow.gFolderDisplay.displayedFolder.flags & Ci.nsMsgFolderFlags.Virtual;
+          break;
+        }
+      } catch (e) {} // If there's an error here, it's not what we want, so we need do nothing
+    }
+
+    if (details.type != "new" && !folderIsVirtual) {
+      // in case of reply, forward and redirect use the folder containing the related message,
+      // unless it is shown in a saved search folder
       try {
         folderURI = window.gMessenger.msgHdrFromURI(window.gMsgCompose.originalMsgURI).folder.URI;
       } catch (e) {}
