@@ -151,11 +151,40 @@ var folderAccountCompose = {
     NotifyComposeBodyReady: function () {},
 
     NotifyComposeFieldsReady: async function () {
-      // let wndwId = WL.extension.windowManager.wrapWindow(window).id; // , windowId: wndwId}
       let tabId = WL.extension.tabManager.getWrapper(window).id;
       let details = await window.notifyTools.notifyBackground({ command: "getComposeDetails", tabId: tabId });
       let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
+
+      let preserveCursorPosition = changedDetails.hasOwnProperty("identityId");
+      if (preserveCursorPosition) {
+        // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=118050
+        try {
+          // code snippets from Thunderbird's editorUtilities.js
+          let editorElement = window.document.querySelector("editor");
+          var editor = editorElement.getEditor(editorElement.contentWindow);
+          // code snippets from Thunderbird's MsgComposeCommands.js
+          var selection = editor.selection;
+          let range = selection.getRangeAt(0);
+          var start = range.startOffset;
+          var startNode = range.startContainer;
+          editor.enableUndo(false);
+        } catch (e) {
+          console.log("Folder Account:", e)
+        }
+      }
+      
       await window.notifyTools.notifyBackground({ command: "setComposeDetails", tabId: tabId, details: changedDetails });
+
+      if (preserveCursorPosition) {
+        try {
+          // code snippets from Thunderbird's MsgComposeCommands.js
+          editor.enableUndo(true);
+          editor.resetModificationCount();
+          selection.collapse(startNode, start);
+        } catch (e) {
+          console.log("Folder Account:", e)
+        }
+      }
       // folderAccountCompose.adjustFocus();
     },
 
