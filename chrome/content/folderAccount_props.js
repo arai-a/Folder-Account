@@ -201,6 +201,7 @@ function onLoad(activatedWhileWindowOpen) {
       </vbox>
     </vbox>
   `);
+  window.resizeTo(605, 305);
   folderAccountProps.addTab();
 }
 
