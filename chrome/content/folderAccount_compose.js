@@ -2,15 +2,14 @@ Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/noti
 
 var folderAccountCompose = {
 
-  // Global variables
-  prefs: Services.prefs,
-
   getPrefs: function (folderURI, blob) {
 
     // Retrieve the account from the preferences hive
     // Look at the samples below to see how blob is used...
 
     var acct = "";
+    
+    let prefs = Services.prefs.getBranch("extensions.folderaccount.");
 
     // If a folder has no prefs set, look at parent, then grandparent, et al until something is found or we run out of ancestors
     // folderURI = mailbox://somename@someaddr.com/folder/subfolder/subsubfolder/...
@@ -24,7 +23,7 @@ var folderAccountCompose = {
     var ct = folderURI.split('/').length;
     while (ct > 3) {
       try {
-        acct = folderAccountCompose.prefs.getCharPref("extensions.folderaccount." + blob + folderURI);
+        acct = prefs.getCharPref(blob + folderURI);
         break; // We got our value, let's leave this loop
       } catch (e) {} // Nothing to do, just leave acct at default value
       folderURI = folderURI.substring(0, folderURI.lastIndexOf('/')); // Point folderURI at the parent folder

@@ -4,14 +4,12 @@ var folderAccountProps = {
 
     addTab: function() {
 
-        var allPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-
         // Retrieve any stored user settings...
 
         var folderURI =  window.arguments[0].folder.URI;
 
 
-        var userSettings = allPrefs.getBranch("extensions.folderaccount.");   
+        let prefs = Services.prefs.getBranch("extensions.folderaccount.");   
         var defaultFrom;
         var defaultTo;
         var overrideReturnAddress;
@@ -23,7 +21,7 @@ var folderAccountProps = {
         
         // Selected From: account
         try {
-            defaultFrom = userSettings.getCharPref(folderURI);      
+            defaultFrom = prefs.getCharPref(folderURI);      
         } catch (e) {
             defaultFrom = "Use Default";
         }
@@ -31,40 +29,40 @@ var folderAccountProps = {
 
         // Selected To: address
         try {
-            defaultTo = userSettings.getCharPref("to." + folderURI);
+            defaultTo = prefs.getCharPref("to." + folderURI);
         } catch (e) {
             defaultTo = "";
         }
  
         try {
-            defaultReplyTo = userSettings.getCharPref("replyTo." + folderURI);
+            defaultReplyTo = prefs.getCharPref("replyTo." + folderURI);
         } catch (e) {
             defaultReplyTo = "";
         }
 
          // Include address in CC on reply?
          try {
-             addToCcOnReply = userSettings.getCharPref("addToCcOnReply." + folderURI);
+             addToCcOnReply = prefs.getCharPref("addToCcOnReply." + folderURI);
          } catch (e) {
              addToCcOnReply = "false";
          }
 
          // Include RepyTo on reply?
          try {
-             replyToOnReplyForward = userSettings.getCharPref("replyToOnReplyForward." + folderURI);
+             replyToOnReplyForward = prefs.getCharPref("replyToOnReplyForward." + folderURI);
          } catch (e) {
              replyToOnReplyForward = "false";
          }
          
          // Override default return address?
          try {
-             overrideReturnAddress = userSettings.getCharPref("overrideReturnAddress." + folderURI);
+             overrideReturnAddress = prefs.getCharPref("overrideReturnAddress." + folderURI);
          } catch (e) {
              overrideReturnAddress = "false";
          }
 
          try {
-             sortIdentities = userSettings.getCharPref("sortAccounts");
+             sortIdentities = prefs.getCharPref("sortAccounts");
          } catch (e) {
              sortIdentities = "false";
          }
@@ -136,8 +134,7 @@ var folderAccountProps = {
 
             var folderURI =  window.arguments[0].folder.URI;
 
-            var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService);
-            prefs = prefs.getBranch("extensions.folderaccount.");   
+            let prefs = Services.prefs.getBranch("extensions.folderaccount.");   
 
             function setOrClearPref(pref, value, valueToClear = "") {
               if(value == valueToClear) {
