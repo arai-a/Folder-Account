@@ -172,7 +172,7 @@ var folderAccountCompose = {
           var startNode = range.startContainer;
           editor.enableUndo(false);
         } catch (e) {
-          console.log("Folder Account:", e)
+          console.log("Folder Account: error saving cursor position:", e)
         }
       }
       
@@ -185,7 +185,7 @@ var folderAccountCompose = {
           editor.resetModificationCount();
           selection.collapse(startNode, start);
         } catch (e) {
-          console.log("Folder Account:", e)
+          console.log("Folder Account: error restoring cursor position:", e)
         }
       }
       // folderAccountCompose.adjustFocus();

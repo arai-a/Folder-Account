@@ -47,7 +47,7 @@ var folderAccount = {
             return [MailServices.accounts.getIdentity(identityKey), null];
       }
     } catch (e) {
-      console.log("Folder Account: Error in getIdentityForHeaderOverride()")
+      console.log("Folder Account: error in getIdentityForHeaderOverride():", e);
     }
     return getIdentityForHeaderOriginal.apply(this, arguments);
   },
