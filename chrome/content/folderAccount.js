@@ -52,20 +52,38 @@ var folderAccount = {
     return getIdentityForHeaderOriginal.apply(this, arguments);
   },
 
-  load: function() {
+  archiveFunctionHooked: false,
+
+  hookArchiveFunction: function (enable) {
+    if (enable) {
+      MailUtils.getIdentityForHeader = folderAccount.getIdentityForHeaderOverride;
+      console.log("Folder Account: hooked into archive function");
+    } else if (this.archiveFunctionHooked) {
+      MailUtils.getIdentityForHeader = getIdentityForHeaderOriginal;
+      console.log("Folder Account: restored original archive function");      
+    }
+    this.archiveFunctionHooked = enable;
+  },
+  
+  load: async function() {
     // Add a listner to watch for a renamed folder
     // When a folder is renamed, we need to update our stored prefs to reflect the change
     // nsIMsgFolderListener
     MailServices.mfn.addListener(folderAccount.folderListener, MailServices.mfn.folderRenamed);
     // hook into function called by archiveMessages in MessageArchiver.jsm
-    MailUtils.getIdentityForHeader = folderAccount.getIdentityForHeaderOverride;    
+    this.hookArchiveFunction(await this.notifyTools.notifyBackground({ command: "getOption", item: "useForArchive" }));
+    this.notifyTools.addListener(async (info) => {
+      if (info.command == "optionChanged" && info.item == "useForArchive")
+        this.hookArchiveFunction(info.value);
+    });
   },
 
   unload: function() {
     // Remove our folder listner
     MailServices.mfn.removeListener(folderAccount.folderListener);
     // restore original function
-    MailUtils.getIdentityForHeader = getIdentityForHeaderOriginal;
+    this.hookArchiveFunction(false);
+    this.notifyTools.removeAllListeners()
   }
   
 };
@@ -77,3 +95,5 @@ function onLoad(activatedWhileWindowOpen) {
 function onUnload(deactivatedWhileWindowOpen) {
   folderAccount.unload();
 }
+
+Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/notifyTools/notifyTools.js", folderAccount, "UTF-8");
