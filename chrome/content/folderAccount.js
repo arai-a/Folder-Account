@@ -76,6 +76,17 @@ var folderAccount = {
       if (info.command == "optionChanged" && info.item == "useForArchive")
         this.hookArchiveFunction(info.value);
     });
+    // migrate sortAccounts preference into local storage
+    try {  
+      let prefName = "extensions.folderaccount.sortAccounts";
+      if (Services.prefs.getPrefType(prefName)) {      
+        await this.notifyTools.notifyBackground({ command: "setOption", item: "sortIdentities",
+            checked: Services.prefs.getCharPref(prefName) });
+        Services.prefs.clearUserPref(prefName);
+      }
+    } catch (e) {
+      console.log("Folder Account: error migrating sortAccounts preference:", e);
+    }    
   },
 
   unload: function() {

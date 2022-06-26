@@ -19,7 +19,7 @@ var folderAccountProps = {
         var replyToOnReplyForward;
         var defaultReplyTo;
         
-        let sortIdentities;
+        let sortIdentities = false;
         
         // Selected From: account
         try {
@@ -63,12 +63,9 @@ var folderAccountProps = {
              overrideReturnAddress = "false";
          }
 
-         try {
-             sortIdentities = prefs.getCharPref("sortAccounts");
-         } catch (e) {
-             sortIdentities = "false";
-         }
-
+        window.notifyTools.notifyBackground({ command: "getOption", item: "sortIdentities" })
+          .then((checked) => { sortIdentities = checked });
+         
         var menuList = document.getElementById("mlFolderAccount");
         menuList.selectedItem = menuList.appendItem("Use Default", "Use Default");      
         window.notifyTools.notifyBackground({ command: "listAccounts" }).then((accounts) => {
@@ -90,7 +87,7 @@ var folderAccountProps = {
               } catch(e) { }  // Nothing to do but skip this identity...
             }
             let entriesArray = Object.entries(menuListEntries);
-            if (sortIdentities == "true")
+            if (sortIdentities)
               entriesArray = entriesArray.sort(([,a], [,b]) => (a > b));
             let separator = document.createXULElement("menuseparator");
             menuList.menupopup.appendChild(separator);
@@ -109,8 +106,6 @@ var folderAccountProps = {
         document.getElementById("mlFolderAccountAddToCcOnReply").checked = (addToCcOnReply == "true");
         document.getElementById("mlFolderAccountReplyToOnReplyForward").checked = (replyToOnReplyForward == "true");
         document.getElementById("mlFolderAccountOverrideReturnAddress").checked = (overrideReturnAddress == "true");
-
-        document.getElementById("mlFolderAccountSortIdentities").checked = (sortIdentities == "true");
 
         document.addEventListener("dialogaccept", function(event) {
         	folderAccountProps.saveAccountPrefs();
@@ -132,8 +127,6 @@ var folderAccountProps = {
             var mlReplyToOnReplyForward	  = document.getElementById("mlFolderAccountReplyToOnReplyForward");
             var mlOverrideReturnAddress   = document.getElementById("mlFolderAccountOverrideReturnAddress");
             
-            let mlSortIdentities          = document.getElementById("mlFolderAccountSortIdentities");
-
             var folderURI =  window.arguments[0].folder.URI;
 
             let prefs = Services.prefs.getBranch("extensions.folderaccount.");   
@@ -162,8 +155,6 @@ var folderAccountProps = {
             setOrClearPref("replyToOnReplyForward." + folderURI, mlReplyToOnReplyForward.getAttribute("checked"));
             setOrClearPref("overrideReturnAddress." + folderURI, mlOverrideReturnAddress.getAttribute("checked"));
 
-            setOrClearPref("sortAccounts", mlSortIdentities.getAttribute("checked"));
-            
         } catch (e) { } 
     }
 };
@@ -184,8 +175,6 @@ function onLoad(activatedWhileWindowOpen) {
           </menulist>
           <hbox>
             <checkbox id="mlFolderAccountOverrideReturnAddress" label="Ignore on Reply (i.e. let Thunderbird choose)" accesskey="I"/>
-            <spacer flex="1"/>
-            <checkbox id="mlFolderAccountSortIdentities" label="Sort (next time)" accesskey="S"/>
           </hbox>
           <spacer height="6"/>
         </vbox>
@@ -200,6 +189,12 @@ function onLoad(activatedWhileWindowOpen) {
           <checkbox id="mlFolderAccountReplyToOnReplyForward" label="Use also on Reply and Forward" accesskey="U"/>
         </hbox>
       </vbox>
+      <spacer height="6"/>
+      <hbox>
+        <spacer flex="1"/>
+        <button label="Global Options" oncommand="window.notifyTools.notifyBackground({ command: 'openOptionsPage' });" accesskey="O"
+        id="mlFolderAccountOptions"/>
+      </hbox>
     </vbox>
   `);
   folderAccountProps.addTab();
