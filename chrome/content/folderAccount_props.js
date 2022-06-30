@@ -4,7 +4,9 @@ Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/noti
 
 var folderAccountProps = {
 
-    addTab: function() {
+    defaultID: "defaultID",
+
+    addTab: async function() {
 
         // Retrieve any stored user settings...
 
@@ -19,13 +21,11 @@ var folderAccountProps = {
         var replyToOnReplyForward;
         var defaultReplyTo;
         
-        let sortIdentities = false;
-        
         // Selected From: account
         try {
             defaultFrom = prefs.getCharPref(folderURI);      
         } catch (e) {
-            defaultFrom = "Use Default";
+            defaultFrom = this.defaultID;
         }
 
 
@@ -63,11 +63,10 @@ var folderAccountProps = {
              overrideReturnAddress = "false";
          }
 
-        window.notifyTools.notifyBackground({ command: "getOption", item: "sortIdentities" })
-          .then((checked) => { sortIdentities = checked });
-         
+        let sortIdentities = await window.notifyTools.notifyBackground({ command: "getOption", item: "sortIdentities" });
+        
         var menuList = document.getElementById("faMenulist");
-        menuList.selectedItem = menuList.appendItem("Use Default", "Use Default");      
+        menuList.selectedItem = menuList.appendItem("Use Default", this.defaultID);
         window.notifyTools.notifyBackground({ command: "listAccounts" }).then((accounts) => {
           for (const account of accounts) {
             if (account.identities.length == 0)
@@ -143,8 +142,8 @@ var folderAccountProps = {
               }
             }
                       
-            // If the value is "Use Default", then we'll just delete the relevant saved preference
-            setOrClearPref(folderURI, pFrom.value, "Use Default");
+            // If the value is "defaultID", then we'll just delete the relevant saved preference
+            setOrClearPref(folderURI, pFrom.value, this.defaultID);
 
             // If the value is blank, then we'll just delete the relevant saved preference
 
