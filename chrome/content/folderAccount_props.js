@@ -66,7 +66,7 @@ var folderAccountProps = {
         window.notifyTools.notifyBackground({ command: "getOption", item: "sortIdentities" })
           .then((checked) => { sortIdentities = checked });
          
-        var menuList = document.getElementById("mlFolderAccount");
+        var menuList = document.getElementById("faMenulist");
         menuList.selectedItem = menuList.appendItem("Use Default", "Use Default");      
         window.notifyTools.notifyBackground({ command: "listAccounts" }).then((accounts) => {
           for (const account of accounts) {
@@ -100,12 +100,12 @@ var folderAccountProps = {
           }
         });
 
-        document.getElementById("mlFolderAccountDefaultTo").setAttribute("value", defaultTo);
-        document.getElementById("mlFolderAccountDefaultReplyTo").setAttribute("value", defaultReplyTo);
+        document.getElementById("faDefaultTo").setAttribute("value", defaultTo);
+        document.getElementById("faDefaultReplyTo").setAttribute("value", defaultReplyTo);
 
-        document.getElementById("mlFolderAccountAddToCcOnReply").checked = (addToCcOnReply == "true");
-        document.getElementById("mlFolderAccountReplyToOnReplyForward").checked = (replyToOnReplyForward == "true");
-        document.getElementById("mlFolderAccountOverrideReturnAddress").checked = (overrideReturnAddress == "true");
+        document.getElementById("faAddToCcOnReply").checked = (addToCcOnReply == "true");
+        document.getElementById("faReplyToOnReplyForward").checked = (replyToOnReplyForward == "true");
+        document.getElementById("faOverrideReturnAddress").checked = (overrideReturnAddress == "true");
 
         document.addEventListener("dialogaccept", function(event) {
         	folderAccountProps.saveAccountPrefs();
@@ -119,15 +119,15 @@ var folderAccountProps = {
 
         try {
 
-            var mlFrom                    = document.getElementById("mlFolderAccount");
-            var mlTo                      = document.getElementById("mlFolderAccountDefaultTo");
-            var mlReplyTo                 = document.getElementById("mlFolderAccountDefaultReplyTo");
+            let pFrom                    = document.getElementById("faMenulist");
+            let pTo                      = document.getElementById("faDefaultTo");
+            let pReplyTo                 = document.getElementById("faDefaultReplyTo");
 
-            var mlAddToCcOnReply          = document.getElementById("mlFolderAccountAddToCcOnReply");
-            var mlReplyToOnReplyForward	  = document.getElementById("mlFolderAccountReplyToOnReplyForward");
-            var mlOverrideReturnAddress   = document.getElementById("mlFolderAccountOverrideReturnAddress");
+            let pAddToCcOnReply          = document.getElementById("faAddToCcOnReply");
+            let pReplyToOnReplyForward	  = document.getElementById("faReplyToOnReplyForward");
+            let pOverrideReturnAddress   = document.getElementById("faOverrideReturnAddress");
             
-            var folderURI =  window.arguments[0].folder.URI;
+            let folderURI =  window.arguments[0].folder.URI;
 
             let prefs = Services.prefs.getBranch("extensions.folderaccount.");   
 
@@ -144,16 +144,16 @@ var folderAccountProps = {
             }
                       
             // If the value is "Use Default", then we'll just delete the relevant saved preference
-            setOrClearPref(folderURI, mlFrom.value, "Use Default");
+            setOrClearPref(folderURI, pFrom.value, "Use Default");
 
             // If the value is blank, then we'll just delete the relevant saved preference
 
-            setOrClearPref("to." + folderURI, mlTo.value.trim());
-            setOrClearPref("replyTo." + folderURI, mlReplyTo.value.trim());
+            setOrClearPref("to." + folderURI, pTo.value.trim());
+            setOrClearPref("replyTo." + folderURI, pReplyTo.value.trim());
 
-            setOrClearPref("addToCcOnReply." + folderURI, mlAddToCcOnReply.getAttribute("checked"));
-            setOrClearPref("replyToOnReplyForward." + folderURI, mlReplyToOnReplyForward.getAttribute("checked"));
-            setOrClearPref("overrideReturnAddress." + folderURI, mlOverrideReturnAddress.getAttribute("checked"));
+            setOrClearPref("addToCcOnReply." + folderURI, pAddToCcOnReply.getAttribute("checked"));
+            setOrClearPref("replyToOnReplyForward." + folderURI, pReplyToOnReplyForward.getAttribute("checked"));
+            setOrClearPref("overrideReturnAddress." + folderURI, pOverrideReturnAddress.getAttribute("checked"));
 
         } catch (e) { } 
     }
@@ -170,32 +170,32 @@ function onLoad(activatedWhileWindowOpen) {
     <tab id="FolderAccountTab" label="Folder Account" insertafter="GeneralTab"/>
     <vbox id="FolderAccountPanel" insertafter="GeneralPanel">
       <vbox id="nameBox" class="input-container">
-        <label id="faAccountLabel" value="From Account:" accesskey="F" control="mlFolderAccount" align="start" />
+        <label id="faMenulistLabel" value="From Account:" accesskey="F" control="faMenulist" align="start" />
         <vbox>
-          <menulist is="menulist-editable" id="mlFolderAccount" type="description" disableautoselect="false">
-            <menupopup id="mlFolderAccountPopup"/>
+          <menulist is="menulist-editable" id="faMenulist" type="description" disableautoselect="false">
+            <menupopup id="faMenulistPopup"/>
           </menulist>
           <hbox>
-            <checkbox id="mlFolderAccountOverrideReturnAddress" label="Ignore on Reply (i.e. let Thunderbird choose)" accesskey="I"/>
+            <checkbox id="faOverrideReturnAddress" label="Ignore on Reply (i.e. let Thunderbird choose)" accesskey="I"/>
           </hbox>
           <spacer height="6"/>
         </vbox>
-        <label id="faDefaultToLabel" value="Default To:" control="mlFolderAccountDefaultTo" accesskey="T"/>
+        <label id="faDefaultToLabel" value="Default To:" control="faDefaultTo" accesskey="T"/>
         <hbox class="input-container">
-          <html:input id="mlFolderAccountDefaultTo" type="text" class="input-inline"/>
-          <checkbox id="mlFolderAccountAddToCcOnReply" label="Add to CC list on Reply" accesskey="C"/>
+          <html:input id="faDefaultTo" type="text" class="input-inline"/>
+          <checkbox id="faAddToCcOnReply" label="Add to CC list on Reply" accesskey="C"/>
         </hbox>
-        <label id="faDefaultReplyToLabel" value="Additional Reply-To:" control="mlFolderAccountDefaultReplyTo" accesskey="R"/>
+        <label id="faDefaultReplyToLabel" value="Additional Reply-To:" control="faDefaultReplyTo" accesskey="R"/>
         <hbox class="input-container">
-          <html:input id="mlFolderAccountDefaultReplyTo" type="text" class="input-inline"/>
-          <checkbox id="mlFolderAccountReplyToOnReplyForward" label="Use also on Reply and Forward" accesskey="U"/>
+          <html:input id="faDefaultReplyTo" type="text" class="input-inline"/>
+          <checkbox id="faReplyToOnReplyForward" label="Use also on Reply and Forward" accesskey="U"/>
         </hbox>
       </vbox>
       <spacer height="6"/>
       <hbox>
         <spacer flex="1"/>
         <button label="Global Options" oncommand="window.notifyTools.notifyBackground({ command: 'openOptionsPage' });" accesskey="O"
-        id="mlFolderAccountOptions"/>
+        id="faOptions"/>
       </hbox>
     </vbox>
   `);
