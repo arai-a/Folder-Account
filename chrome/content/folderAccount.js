@@ -10,7 +10,7 @@ var folderAccount = {
       folderAccount.folderRenamed(oldFolder.URI, newFolder.URI);
     }
   },
-  
+
   // The following is run when a folder is renamed
   folderRenamed: function (oldURI, newURI) {
     // Scan through the preferences and find any folder references that need to be updated
@@ -19,20 +19,20 @@ var folderAccount = {
     for (const child of children) {
       let child2 = child + "/";
       let pos = child2.indexOf(oldURI + "/");
-      if (pos >= 0 ) {
+      if (pos >= 0) {
         // Store the setting value
         let val = prefs.getCharPref(child);
         // Clear the old setting
         prefs.clearUserPref(child);
         // Create and set the new setting
         prefs.setCharPref(
-            child2.substring(0, pos) + newURI + child2.substring(pos + oldURI.length, child.length), 
-            val
-        );           
+          child2.substring(0, pos) + newURI + child2.substring(pos + oldURI.length, child.length),
+          val
+        );
       }
     }
   },
-  
+
   // hook into function MailUtils.getIdentityForHeader called by MessageArchiver.prototype.archiveMessages,
   // to provide the identity possibly set for the folder containing the message
   getIdentityForHeaderOverride: function (hdr, type, hint = "") {
@@ -43,8 +43,8 @@ var folderAccount = {
         let prefName = "extensions.folderaccount." + hdr.folder.URI;
         if (Services.prefs.getPrefType(prefName))
           identityKey = Services.prefs.getCharPref(prefName);
-          if (identityKey)
-            return [MailServices.accounts.getIdentity(identityKey), null];
+        if (identityKey)
+          return [MailServices.accounts.getIdentity(identityKey), null];
       }
     } catch (e) {
       console.log("Folder Account: error in getIdentityForHeaderOverride():", e);
@@ -60,43 +60,49 @@ var folderAccount = {
       console.log("Folder Account: hooked into archive function");
     } else if (this.archiveFunctionHooked) {
       MailUtils.getIdentityForHeader = getIdentityForHeaderOriginal;
-      console.log("Folder Account: restored original archive function");      
+      console.log("Folder Account: restored original archive function");
     }
     this.archiveFunctionHooked = enable;
   },
-  
-  load: async function() {
+
+  load: async function () {
     // Add a listner to watch for a renamed folder
     // When a folder is renamed, we need to update our stored prefs to reflect the change
     // nsIMsgFolderListener
     MailServices.mfn.addListener(folderAccount.folderListener, MailServices.mfn.folderRenamed);
     // hook into function called by archiveMessages in MessageArchiver.jsm
-    this.hookArchiveFunction(await this.notifyTools.notifyBackground({ command: "getOption", item: "useForArchive" }));
+    this.hookArchiveFunction(await this.notifyTools.notifyBackground({
+      command: "getOption",
+      item: "useForArchive"
+    }));
     this.notifyTools.addListener(async (info) => {
       if (info.command == "optionChanged" && info.item == "useForArchive")
         this.hookArchiveFunction(info.value);
     });
     // migrate sortAccounts preference into local storage
-    try {  
+    try {
       let prefName = "extensions.folderaccount.sortAccounts";
-      if (Services.prefs.getPrefType(prefName)) {      
-        await this.notifyTools.notifyBackground({ command: "setOption", item: "sortIdentities",
-            checked: Services.prefs.getCharPref(prefName) });
+      if (Services.prefs.getPrefType(prefName)) {
+        await this.notifyTools.notifyBackground({
+          command: "setOption",
+          item: "sortIdentities",
+          checked: Services.prefs.getCharPref(prefName)
+        });
         Services.prefs.clearUserPref(prefName);
       }
     } catch (e) {
       console.log("Folder Account: error migrating sortAccounts preference:", e);
-    }    
+    }
   },
 
-  unload: function() {
+  unload: function () {
     // Remove our folder listner
     MailServices.mfn.removeListener(folderAccount.folderListener);
     // restore original function
     this.hookArchiveFunction(false);
     this.notifyTools.removeAllListeners()
   }
-  
+
 };
 
 function onLoad(activatedWhileWindowOpen) {

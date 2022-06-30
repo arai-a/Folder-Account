@@ -8,7 +8,7 @@ var folderAccountCompose = {
     // Look at the samples below to see how blob is used...
 
     var acct = "";
-    
+
     let prefs = Services.prefs.getBranch("extensions.folderaccount.");
 
     // If a folder has no prefs set, look at parent, then grandparent, et al until something is found or we run out of ancestors
@@ -39,7 +39,7 @@ var folderAccountCompose = {
 
     let folderURI = "";
     let folderIsVirtual = false;
-    
+
     // cycle through all windows until we find one that displays a folder
     let enumerator = Services.wm.getEnumerator(null);
     while (enumerator.hasMoreElements()) {
@@ -57,13 +57,13 @@ var folderAccountCompose = {
       // in case of reply, forward and redirect use the folder containing the related message,
       // unless it is shown in a saved search folder with applicable settings
       folderURI = window.gMessenger.msgHdrFromURI(window.gMsgCompose.originalMsgURI).folder.URI;
-    }  
-    
+    }
+
     if (!folderURI)
       return {};
-    
+
     let newDetails = {};
-    
+
     // To:
     // Do NOT overwrite To: address if the message is new and already has one: 
     // The user probably selected an addr from the address book and wants to use that one.
@@ -82,8 +82,8 @@ var folderAccountCompose = {
     // Reply-To: Set everytime
     // (by Jakob)
 
-    if ((details.type == "new" || folderAccountCompose.getPrefs(folderURI, "replyToOnReplyForward.")) 
-        && details.replyTo.length == 0) {
+    if ((details.type == "new" || folderAccountCompose.getPrefs(folderURI, "replyToOnReplyForward.")) &&
+      details.replyTo.length == 0) {
       try {
         var replyTo = folderAccountCompose.getPrefs(folderURI, "replyTo.");
         if (replyTo) {
@@ -93,8 +93,8 @@ var folderAccountCompose = {
     }
 
     // Set CC for Replies
-    
-    if (details.type == "reply" && details.cc.length == 0) { 
+
+    if (details.type == "reply" && details.cc.length == 0) {
       try {
         var To = folderAccountCompose.getPrefs(folderURI, "to.");
         var addToCcOnReply = folderAccountCompose.getPrefs(folderURI, "addToCcOnReply.");
@@ -126,36 +126,39 @@ var folderAccountCompose = {
     return newDetails;
   },
 
-// workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1732558 not needed anymore:
+  // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1732558 not needed anymore:
 
-/* 
-  // code snippets from Thunderbird's MsgComposeCommands.js
-  adjustFocus: function () {
-    // Focus on the recipient input field if no pills are present.
-    let element = document.getElementById("toAddrContainer");
-    if (element.querySelectorAll("mail-address-pill").length == 0) {
-      element.querySelector(".address-row-input").focus();
-      return;
-    }
-    // Focus subject if empty.
-    element = document.getElementById("msgSubject");
-    if (element.value == "") {
-      element.focus();
-      return;
-    }
-    // Focus message body.
-    document.commandDispatcher.advanceFocusIntoSubtree(
-      document.getElementById("appcontent")
-    );
-  },
-*/
-    
+  /* 
+    // code snippets from Thunderbird's MsgComposeCommands.js
+    adjustFocus: function () {
+      // Focus on the recipient input field if no pills are present.
+      let element = document.getElementById("toAddrContainer");
+      if (element.querySelectorAll("mail-address-pill").length == 0) {
+        element.querySelector(".address-row-input").focus();
+        return;
+      }
+      // Focus subject if empty.
+      element = document.getElementById("msgSubject");
+      if (element.value == "") {
+        element.focus();
+        return;
+      }
+      // Focus message body.
+      document.commandDispatcher.advanceFocusIntoSubtree(
+        document.getElementById("appcontent")
+      );
+    },
+  */
+
   folderAccountStateListener: {
     NotifyComposeBodyReady: function () {},
 
     NotifyComposeFieldsReady: async function () {
       let tabId = WL.extension.tabManager.getWrapper(window).id;
-      let details = await window.notifyTools.notifyBackground({ command: "getComposeDetails", tabId: tabId });
+      let details = await window.notifyTools.notifyBackground({
+        command: "getComposeDetails",
+        tabId: tabId
+      });
       let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
 
       let preserveCursorPosition = changedDetails.hasOwnProperty("identityId");
@@ -175,8 +178,12 @@ var folderAccountCompose = {
           console.log("Folder Account: error saving cursor position:", e)
         }
       }
-      
-      await window.notifyTools.notifyBackground({ command: "setComposeDetails", tabId: tabId, details: changedDetails });
+
+      await window.notifyTools.notifyBackground({
+        command: "setComposeDetails",
+        tabId: tabId,
+        details: changedDetails
+      });
 
       if (preserveCursorPosition) {
         try {
@@ -194,21 +201,22 @@ var folderAccountCompose = {
     ComposeProcessDone: function (aResult) {},
     SaveInFolderDone: function (folderURI) {}
   },
-  
+
   /**
-  * This is called when the var gMsgCompose is init. We now take
-  * the extraArguments value and listen for state changes so
-  * we know when the editor is finished.
-  */
-  windowInit: function()
-  {
+   * This is called when the var gMsgCompose is init. We now take
+   * the extraArguments value and listen for state changes so
+   * we know when the editor is finished.
+   */
+  windowInit: function () {
     window.gMsgCompose.RegisterStateListener(folderAccountCompose.folderAccountStateListener);
   }
 
 };
 
 function onLoad(activatedWhileWindowOpen) {
-  window.addEventListener("compose-window-init", function() { folderAccountCompose.windowInit(); }, true);
+  window.addEventListener("compose-window-init", function () {
+    folderAccountCompose.windowInit();
+  }, true);
 }
 
 function onUnload(deactivatedWhileWindowOpen) {}
