@@ -1,5 +1,3 @@
-Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/notifyTools/notifyTools.js", window);
-
 var folderAccountCompose = {
 
   getPrefs: function (folderURI, blob) {
@@ -155,7 +153,7 @@ var folderAccountCompose = {
 
     NotifyComposeFieldsReady: async function () {
       let tabId = WL.extension.tabManager.getWrapper(window).id;
-      let details = await window.notifyTools.notifyBackground({
+      let details = await folderAccountCompose.notifyTools.notifyBackground({
         command: "getComposeDetails",
         tabId: tabId
       });
@@ -179,7 +177,7 @@ var folderAccountCompose = {
         }
       }
 
-      await window.notifyTools.notifyBackground({
+      await folderAccountCompose.notifyTools.notifyBackground({
         command: "setComposeDetails",
         tabId: tabId,
         details: changedDetails
@@ -220,3 +218,5 @@ function onLoad(activatedWhileWindowOpen) {
 }
 
 function onUnload(deactivatedWhileWindowOpen) {}
+
+Services.scriptloader.loadSubScript("chrome://folderaccount/content/scripts/notifyTools/notifyTools.js", folderAccountCompose, "UTF-8");
