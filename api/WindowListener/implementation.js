@@ -2,7 +2,7 @@
  * This file is provided by the addon-developer-support repository at
  * https://github.com/thundernest/addon-developer-support
  *
- * Version: 1.56
+ * Version: 1.57
  *
  * Author: John Bieling (john@thunderbird.net)
  *
@@ -71,11 +71,11 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
     let name = this.extension.manifest.name;
     let entry = icon
       ? event.target.ownerGlobal.MozXULElement.parseXULToFragment(
-          `<menuitem class="menuitem-iconic" id="${id}" image="${icon}" label="${name}" />`
-        )
+        `<menuitem class="menuitem-iconic" id="${id}" image="${icon}" label="${name}" />`
+      )
       : event.target.ownerGlobal.MozXULElement.parseXULToFragment(
-          `<menuitem id="${id}" label="${name}" />`
-        );
+        `<menuitem id="${id}" label="${name}" />`
+      );
 
     event.target.appendChild(entry);
     let noPrefsElem = event.target.querySelector('[disabled="true"]');
@@ -137,7 +137,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
           // Setup either the options entry in the menu or the button
           //window.document.getElementById(id).addEventListener("command", function() {window.openDialog(self.pathToOptionsPage, "AddonOptions", "chrome,resizable,centerscreen", WL)});
           if (card.addon.id == this.extension.id) {
-            let optionsMenu = 
+            let optionsMenu =
               (this.getThunderbirdVersion().major > 78 && this.getThunderbirdVersion().major < 88) ||
               (this.getThunderbirdVersion().major == 78 && this.getThunderbirdVersion().minor < 10) ||
               (this.getThunderbirdVersion().major == 78 && this.getThunderbirdVersion().minor == 10 && this.getThunderbirdVersion().revision < 2);
@@ -204,7 +204,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
   // returns the outer browser, not the nested browser of the add-on manager
   // events must be attached to the outer browser
   getAddonManagerFromTab(tab) {
-    if (tab.browser) {
+    if (tab.browser && tab.mode.name == "contentTab") {
       let win = tab.browser.contentWindow;
       if (win && win.location.href == "about:addons") {
         return win;
@@ -215,9 +215,28 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
   getAddonManagerFromWindow(window) {
     let tabMail = this.getTabMail(window);
     for (let tab of tabMail.tabInfo) {
-      let win = this.getAddonManagerFromTab(tab);
-      if (win) {
-        return win;
+      let managerWindow = this.getAddonManagerFromTab(tab);
+      if (managerWindow) {
+        return managerWindow;
+      }
+    }
+  }
+
+  async getAddonManagerFromWindowWaitForLoad(window) {
+    let { setTimeout } = Services.wm.getMostRecentWindow("mail:3pane");
+    
+    let tabMail = this.getTabMail(window);
+    for (let tab of tabMail.tabInfo) {
+      if (tab.browser && tab.mode.name == "contentTab") {
+        // Instead of registering a load observer, wait until its loaded. Not nice,
+        // but gets aroud a lot of edge cases.
+        while(!tab.pageLoaded) {
+          await new Promise(r => setTimeout(r, 150));
+        }
+        let managerWindow = this.getAddonManagerFromTab(tab);
+        if (managerWindow) {
+          return managerWindow;
+        }
       }
     }
   }
@@ -233,7 +252,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
     )) {
       managerWindow.document.addEventListener("ViewChanged", this);
       managerWindow.document.addEventListener("update", this);
-      managerWindow.document.addEventListener("view-loaded", this);   
+      managerWindow.document.addEventListener("view-loaded", this);
       managerWindow[this.uniqueRandomID] = {};
       managerWindow[this.uniqueRandomID].hasAddonManagerEventListeners = true;
     }
@@ -333,41 +352,20 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
 
     // TabMonitor to detect opening of tabs, to setup the options button in the add-on manager.
     this.tabMonitor = {
-      onTabTitleChanged(aTab) {},
-      onTabClosing(aTab) {},
-      onTabPersist(aTab) {},
-      onTabRestored(aTab) {},
-      onTabSwitched(aNewTab, aOldTab) {
-        //self.setupAddonManager(self.getAddonManagerFromTab(aNewTab));
-      },
-      async onTabOpened(aTab) {
-        if (aTab.browser) {
-          if (!aTab.pageLoaded) {
-            // await a location change if browser is not loaded yet
-            await new Promise((resolve) => {
-              let reporterListener = {
-                QueryInterface: ChromeUtils.generateQI([
-                  "nsIWebProgressListener",
-                  "nsISupportsWeakReference",
-                ]),
-                onStateChange() {},
-                onProgressChange() {},
-                onLocationChange(
-                  /* in nsIWebProgress*/ aWebProgress,
-                  /* in nsIRequest*/ aRequest,
-                  /* in nsIURI*/ aLocation
-                ) {
-                  aTab.browser.removeProgressListener(reporterListener);
-                  resolve();
-                },
-                onStatusChange() {},
-                onSecurityChange() {},
-                onContentBlockingEvent() {},
-              };
-              aTab.browser.addProgressListener(reporterListener);
-            });
+      onTabTitleChanged(tab) { },
+      onTabClosing(tab) { },
+      onTabPersist(tab) { },
+      onTabRestored(tab) { },
+      onTabSwitched(aNewTab, aOldTab) { },
+      async onTabOpened(tab) {
+        if (tab.browser && tab.mode.name == "contentTab") {
+          let { setTimeout } = Services.wm.getMostRecentWindow("mail:3pane");
+          // Instead of registering a load observer, wait until its loaded. Not nice,
+          // but gets aroud a lot of edge cases.
+          while(!tab.pageLoaded) {
+            await new Promise(r => setTimeout(r, 150));
           }
-          self.setupAddonManager(self.getAddonManagerFromTab(aTab));
+          self.setupAddonManager(self.getAddonManagerFromTab(tab));
         }
       },
     };
@@ -386,8 +384,8 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
         aDocumentExistsAt(uriString) {
           self.log(
             "Checking if document at <" +
-              uriString +
-              "> used in registration actually exists."
+            uriString +
+            "> used in registration actually exists."
           );
           try {
             let uriObject = Services.io.newURI(uriString);
@@ -427,10 +425,10 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
               default:
                 throw new Error(
                   "Preference <" +
-                    aName +
-                    "> has an unsupported type <" +
-                    typeof aDefault +
-                    ">. Allowed are string, number and boolean."
+                  aName +
+                  "> has an unsupported type <" +
+                  typeof aDefault +
+                  ">. Allowed are string, number and boolean."
                 );
             }
           };
@@ -479,7 +477,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
           if (self.debug && !this.aDocumentExistsAt(windowHref)) {
             self.error(
               "Attempt to register an injector script for non-existent window: " +
-                windowHref
+              windowHref
             );
             return;
           }
@@ -542,8 +540,8 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 // delay startup until startup has been finished
                 self.log(
                   "Waiting for async startup() in <" +
-                    self.pathToStartupScript +
-                    "> to finish."
+                  self.pathToStartupScript +
+                  "> to finish."
                 );
                 if (startupJS.startup) {
                   await startupJS.startup();
@@ -584,9 +582,9 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                   // Special action #1: If this is the main messenger window
                   if (
                     window.location.href ==
-                      "chrome://messenger/content/messenger.xul" ||
+                    "chrome://messenger/content/messenger.xul" ||
                     window.location.href ==
-                      "chrome://messenger/content/messenger.xhtml"
+                    "chrome://messenger/content/messenger.xhtml"
                   ) {
                     if (self.pathToOptionsPage) {
                       if (self.getThunderbirdVersion().major < 78) {
@@ -598,16 +596,14 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                           self
                         );
                       } else {
-                        // Setup the options button/menu in the add-on manager, if it is already open.
-                        self.setupAddonManager(
-                          self.getAddonManagerFromWindow(window),
-                          true
-                        );
                         // Add a tabmonitor, to be able to setup the options button/menu in the add-on manager.
                         self
                           .getTabMail(window)
                           .registerTabMonitor(self.tabMonitor);
                         window[self.uniqueRandomID].hasTabMonitor = true;
+                        // Setup the options button/menu in the add-on manager, if it is already open.
+                        let managerWindow = await self.getAddonManagerFromWindowWaitForLoad(window);
+                        self.setupAddonManager(managerWindow, true);
                       }
                     }
                   }
@@ -642,7 +638,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                             if (
                               targetWindow &&
                               targetWindow.location.href ==
-                                mutation.target.getAttribute("src") &&
+                              mutation.target.getAttribute("src") &&
                               targetWindow.document.readyState == "complete"
                             ) {
                               loaded = true;
@@ -814,10 +810,10 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 if (debug)
                   console.log(
                     elements[i].tagName +
-                      "#" +
-                      elements[i].id +
-                      ": insertafter " +
-                      insertAfterElement.id
+                    "#" +
+                    elements[i].id +
+                    ": insertafter " +
+                    insertAfterElement.id
                   );
                 if (
                   debug &&
@@ -826,8 +822,8 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 ) {
                   console.error(
                     "The id <" +
-                      elements[i].id +
-                      "> of the injected element already exists in the document!"
+                    elements[i].id +
+                    "> of the injected element already exists in the document!"
                   );
                 }
                 elements[i].setAttribute("wlapi_autoinjected", uniqueRandomID);
@@ -846,10 +842,10 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 if (debug)
                   console.log(
                     elements[i].tagName +
-                      "#" +
-                      elements[i].id +
-                      ": insertbefore " +
-                      insertBeforeElement.id
+                    "#" +
+                    elements[i].id +
+                    ": insertbefore " +
+                    insertBeforeElement.id
                   );
                 if (
                   debug &&
@@ -858,8 +854,8 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 ) {
                   console.error(
                     "The id <" +
-                      elements[i].id +
-                      "> of the injected element already exists in the document!"
+                    elements[i].id +
+                    "> of the injected element already exists in the document!"
                   );
                 }
                 elements[i].setAttribute("wlapi_autoinjected", uniqueRandomID);
@@ -875,10 +871,10 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 if (debug)
                   console.log(
                     elements[i].tagName +
-                      "#" +
-                      elements[i].id +
-                      " is an existing container, injecting into " +
-                      elements[i].id
+                    "#" +
+                    elements[i].id +
+                    " is an existing container, injecting into " +
+                    elements[i].id
                   );
                 injectChildren(
                   Array.from(elements[i].children),
@@ -922,10 +918,10 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
                 if (debug)
                   console.log(
                     elements[i].tagName +
-                      "#" +
-                      elements[i].id +
-                      ": append to " +
-                      container.id
+                    "#" +
+                    elements[i].id +
+                    ": append to " +
+                    container.id
                   );
                 elements[i].setAttribute("wlapi_autoinjected", uniqueRandomID);
                 container.appendChild(elements[i]);
@@ -1050,7 +1046,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
     if (isAppShutdown) {
       return; // the application gets unloaded anyway
     }
-    
+
     // Unload from all still open windows
     let urls = Object.keys(this.registeredWindows);
     if (urls.length > 0) {
@@ -1060,7 +1056,7 @@ var WindowListener = class extends ExtensionCommon.ExtensionAPI {
           this.pathToOptionsPage &&
           (window.location.href == "chrome://messenger/content/messenger.xul" ||
             window.location.href ==
-              "chrome://messenger/content/messenger.xhtml")
+            "chrome://messenger/content/messenger.xhtml")
         ) {
           if (this.getThunderbirdVersion().major < 78) {
             let element_addonPrefs = window.document.getElementById(
