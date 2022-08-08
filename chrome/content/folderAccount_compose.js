@@ -124,30 +124,6 @@ var folderAccountCompose = {
     return newDetails;
   },
 
-  // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1732558 not needed anymore:
-
-  /* 
-    // code snippets from Thunderbird's MsgComposeCommands.js
-    adjustFocus: function () {
-      // Focus on the recipient input field if no pills are present.
-      let element = document.getElementById("toAddrContainer");
-      if (element.querySelectorAll("mail-address-pill").length == 0) {
-        element.querySelector(".address-row-input").focus();
-        return;
-      }
-      // Focus subject if empty.
-      element = document.getElementById("msgSubject");
-      if (element.value == "") {
-        element.focus();
-        return;
-      }
-      // Focus message body.
-      document.commandDispatcher.advanceFocusIntoSubtree(
-        document.getElementById("appcontent")
-      );
-    },
-  */
-
   folderAccountStateListener: {
     NotifyComposeBodyReady: function () {},
 
