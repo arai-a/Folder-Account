@@ -30,7 +30,7 @@ var folderAccountCompose = {
     return (acct);
   },
 
-  changeComposeDetails: function (details) {
+  changeComposeDetails: async function (details) {
 
     if (details.type == "draft")
       return {};
@@ -38,17 +38,16 @@ var folderAccountCompose = {
     let folderURI = "";
     let folderIsVirtual = false;
 
-    // cycle through all windows until we find one that displays a folder
-    let enumerator = Services.wm.getEnumerator(null);
-    while (enumerator.hasMoreElements()) {
-      let domWindow = enumerator.getNext();
-      try {
-        if (domWindow.gFolderDisplay && domWindow.gFolderDisplay.displayedFolder) {
-          folderURI = domWindow.gFolderDisplay.displayedFolder.URI;
-          folderIsVirtual = domWindow.gFolderDisplay.displayedFolder.flags & Ci.nsMsgFolderFlags.Virtual;
-          break;
-        }
-      } catch (e) {} // If there's an error here, it's not what we want, so we need do nothing
+    try {
+      let tabId = await folderAccountCompose.notifyTools.notifyBackground({
+        command: "getActiveTab"
+      });
+      let tabObject = WL.extension.tabManager.get(tabId);
+      let displayedFolder = tabObject.nativeTab.folder;
+      folderURI = displayedFolder.URI;
+      folderIsVirtual = Boolean(displayedFolder.flags & Ci.nsMsgFolderFlags.Virtual);
+    } catch (e) {
+      console.log("Folder Account: error in changeComposeDetails:", e);
     }
 
     if (details.type != "new" && !(folderIsVirtual && folderAccountCompose.getPrefs(folderURI, ""))) {
@@ -133,7 +132,7 @@ var folderAccountCompose = {
         command: "getComposeDetails",
         tabId: tabId
       });
-      let changedDetails = folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
+      let changedDetails = await folderAccountCompose.changeComposeDetails(details); // { bcc: `tabId.${tabId}@example.com` }
 
       await folderAccountCompose.notifyTools.notifyBackground({
         command: "setComposeDetails",

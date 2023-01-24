@@ -19,8 +19,14 @@ messenger.WindowListener.registerWindow(
 
 messenger.WindowListener.startListening();
 
+let lastFocusedWindow = messenger.windows.WINDOW_ID_NONE;
+messenger.windows.getCurrent().then((w) => lastFocusedWindow = w.id);
+
 messenger.NotifyTools.onNotifyBackground.addListener(async (info) => {
   switch (info.command) {
+  case "getActiveTab":
+    let [tab] = await messenger.tabs.query({ active: true, windowId: lastFocusedWindow });
+    return tab?.id ?? messenger.tabs.TAB_ID_NONE;
   case "getComposeDetails":
     return await messenger.compose.getComposeDetails(info.tabId);
   case "setComposeDetails":
@@ -52,4 +58,13 @@ browser.storage.onChanged.addListener(async (changes, area) => {
       item: item,
       value: changes[item].newValue
     });
+});
+
+messenger.windows.onFocusChanged.addListener(async (windowId) => {
+  if (windowId < 0)
+    return;
+  let focusedWindow = await messenger.windows.get(windowId);
+  if (focusedWindow?.type == "messageCompose")
+    return;
+  lastFocusedWindow = windowId;
 });
